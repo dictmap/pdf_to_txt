@@ -129,10 +129,13 @@ def change_pdf_to_txt(name):
                 all_text[allrow]['inside'] = text_list[_t]
                 allrow = allrow + 1
     print(name)
-    save_path = 'test_txt\\'+name.split('\\')[-1].replace('.pdf', '.txt')
+    save_path_1 = 'test_txt\\'+name.split('\\')[-1].replace('.pdf', '.txt')
+    save_path_2 = 'test_txt\\' + name.split('\\')[-1].replace('.pdf', '_txt.txt')
     for key in all_text.keys():
-        with open(save_path, 'a+', encoding='utf-8') as file:
+        with open(save_path_1, 'a+', encoding='utf-8') as file:
             file.write(str(all_text[key]) + '\n')
+        with open(save_path_2, 'a+', encoding='utf-8') as file:
+            file.write(str(all_text[key]['inside']) + '\n')
 
 
 # 文件夹路径
