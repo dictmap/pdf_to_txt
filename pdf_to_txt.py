@@ -11,7 +11,6 @@ def check_lines(page, top, buttom):
             if abs(last_top - each_line['top']) <= 2:
                 text = text + each_line['text']
             elif last_check > 0 and not re.search('(?:。|；|\d|报告全文)$', text):
-                # print(each_line)
                 text = text + each_line['text']
             else:
                 text = text + '\n' + each_line['text']
@@ -43,20 +42,17 @@ def change_pdf_to_txt(name):
     allrow = 0
     for i in range(len(pdf.pages)):
         page = pdf.pages[i]
-        # print(page.width)
         buttom = 0
         tables = page.find_tables()
         if len(tables) >= 1:
             count = len(tables)
             for table in tables:
                 if table.bbox[3] < buttom:
-                    # 判断该表格为子表格，丢
                     pass
                 else:
                     count = count - 1
 
                     top = table.bbox[1]
-                    # 取表格上非表格的内容
                     text = check_lines(page, top, buttom)
                     text_list = text.split('\n')
                     for _t in range(len(text_list)):
@@ -68,13 +64,11 @@ def change_pdf_to_txt(name):
                         allrow = allrow + 1
 
                     buttom = table.bbox[3]
-                    # 取表格里的内容
                     new_table = table.extract()
                     r_count = 0
 
                     for r in range(len(new_table)):
                         row = new_table[r]
-                        # 处理表格内换行
                         if row[0] == None:
                             r_count = r_count + 1
                             for c in range(len(row)):
@@ -105,7 +99,6 @@ def change_pdf_to_txt(name):
                         all_text[allrow]['inside'] = str(row)
                         allrow = allrow + 1
 
-                    # 取最后一个表格下的内容
                     if count == 0:
                         text = check_lines(page, '', buttom)
                         text_list = text.split('\n')
@@ -118,7 +111,6 @@ def change_pdf_to_txt(name):
                             allrow = allrow + 1
 
         else:
-            # 取无表格文字的内容
             text = check_lines(page, '', '')
             text_list = text.split('\n')
             for _t in range(len(text_list)):
@@ -128,7 +120,6 @@ def change_pdf_to_txt(name):
                 all_text[allrow]['type'] = 'text'
                 all_text[allrow]['inside'] = text_list[_t]
                 allrow = allrow + 1
-    print(name)
     save_path_1 = 'test_txt\\'+name.split('\\')[-1].replace('.pdf', '.txt')
     save_path_2 = 'test_txt\\' + name.split('\\')[-1].replace('.pdf', '_txt.txt')
     for key in all_text.keys():
@@ -146,7 +137,6 @@ file_names = sorted(file_names, reverse=True)
 # 打印文件名称
 name_list = []
 for file_name in file_names:
-    print(file_name)
     name_list.append(file_name)
     allname = file_name.split('\\')[-1]
     date = allname.split('__')[0]
