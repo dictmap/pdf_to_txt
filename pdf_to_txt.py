@@ -64,10 +64,8 @@ def change_pdf_to_txt(name):
                     text_list = text.split('\n')
                     for _t in range(len(text_list)):
                         all_text[allrow] = {}
-                        all_text[allrow]['page'] = page.page_number
-                        all_text[allrow]['allrow'] = allrow
-                        all_text[allrow]['type'] = 'text'
-                        all_text[allrow]['inside'] = text_list[_t]
+                        all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'text',
+                                            'inside': text_list[_t]}
                         allrow = allrow + 1
 
                     buttom = table.bbox[3]
@@ -104,7 +102,6 @@ def change_pdf_to_txt(name):
                                             'inside': str(row)}
                         # all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'excel',
                         #                     'inside': ' '.join()}
-
                         allrow = allrow + 1
 
                     if count == 0:

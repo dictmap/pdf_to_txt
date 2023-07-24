@@ -2,7 +2,7 @@ import glob
 import pdfplumber
 import re
 from collections import defaultdict
-import pandas as pd
+
 
 class PDFProcessor:
     def __init__(self, filepath):
@@ -90,19 +90,17 @@ class PDFProcessor:
                         else:
                             r_count = 0
 
-                    end_table = [[cell.replace('\n', '') if cell else '' for cell in row if cell] for row in new_table
-                                 if row[0]]
-                    # end_table = []
-                    # for row in new_table:
-                    #     if row[0] != None:
-                    #         cell_list = []
-                    #         for cell in row:
-                    #             if cell != None:
-                    #                 cell = cell.replace('\n', '')
-                    #             else:
-                    #                 cell = ''
-                    #             cell_list.append(cell)
-                    #         end_table.append(cell_list)
+                    end_table = []
+                    for row in new_table:
+                        if row[0] != None:
+                            cell_list = []
+                            for cell in row:
+                                if cell != None:
+                                    cell = cell.replace('\n', '')
+                                else:
+                                    cell = ''
+                                cell_list.append(cell)
+                            end_table.append(cell_list)
                     for row in end_table:
                         self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel', 'inside': str(row)}
                         # self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel',
@@ -144,27 +142,6 @@ class PDFProcessor:
             with open(path, 'a+', encoding='utf-8') as file:
                 file.write(str(self.all_text[key]) + '\n')
 
-    # 保存数据到excel
-    def save_all_text_to_excel(self, path):
-        result = {'text': []}
-        for key in self.all_text.keys():
-            result['text'].append(self.all_text[key])
-        new_data = pd.DataFrame.from_dict(result)
-        new_data.to_excel(path, index=False)
-
-
-# 多进程处理
-def process_all_pdfs_per(file_name):
-    processor = PDFProcessor(file_name)
-    processor.process_pdf()
-    save_path = './test_text/' + file_name.split('\\')[-1].replace('.pdf', '.txt')
-    processor.save_all_text(save_path)
-
-    # save_path = './test_text' + file_name.split('\\')[-1].replace('.pdf', '.xlsx')
-    # processor.save_all_text_to_excel(save_path)
-
-
-# 单条处理
 def process_all_pdfs_in_folder(folder_path):
     file_paths = glob.glob(f'{folder_path}/*')
     file_paths = sorted(file_paths, reverse=True)
@@ -179,24 +156,3 @@ def process_all_pdfs_in_folder(folder_path):
 folder_path = 'D:\\test_data3'
 process_all_pdfs_in_folder(folder_path)
 
-
-# 多进程 使用的话注释掉单条部分代码
-# if __name__ == '__main__':
-#     import multiprocessing
-# 
-#     folder_path = './data'
-#     # 获取文件夹内所有文件名称
-#     file_names = glob.glob(folder_path + '/*')
-#     file_names = sorted(file_names, reverse=True)
-#     threads = []
-#     name_list = []
-#     while file_names:
-#         # 并发数量
-#         for i in range(5):
-#             file_name = file_names[0]
-#             file_names.remove(file_name)
-#             t = multiprocessing.Process(target=process_all_pdfs_per(file_name))
-#             threads.append(t)
-#             t.start()
-#         for t in threads:
-#             t.join()
