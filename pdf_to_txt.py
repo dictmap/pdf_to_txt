@@ -1,25 +1,30 @@
 import glob
 import pdfplumber
 import re
+
+
 def check_lines(page, top, buttom):
     lines = page.extract_words()[::]
     text = ''
     last_top = 0
     last_check = 0
-    for each_line in lines:
+    for l in range(len(lines)):
+        each_line = lines[l]
+        check_re = '(?:。|；|单位：元|单位：万元|币种：人民币|\d|报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'
         if top == '' and buttom == '':
             if abs(last_top - each_line['top']) <= 2:
                 text = text + each_line['text']
-            elif last_check > 0 and not re.search('(?:。|；|\d|报告全文)$', text):
+            elif last_check > 0 and (page.height * 0.9 - each_line['top']) > 0 and not re.search(check_re, text):
+
                 text = text + each_line['text']
             else:
                 text = text + '\n' + each_line['text']
-
         elif top == '':
             if each_line['top'] > buttom:
                 if abs(last_top - each_line['top']) <= 2:
                     text = text + each_line['text']
-                elif last_check > 0 and not re.search('(?:。|；|\d|报告全文)$', text):
+                elif last_check > 0 and (page.height * 0.85 - each_line['top']) > 0 and not re.search(check_re,
+                                                                                                      text):
                     text = text + each_line['text']
                 else:
                     text = text + '\n' + each_line['text']
@@ -27,7 +32,8 @@ def check_lines(page, top, buttom):
             if each_line['top'] < top and each_line['top'] > buttom:
                 if abs(last_top - each_line['top']) <= 2:
                     text = text + each_line['text']
-                elif last_check > 0 and not re.search('(?:。|；|\d|报告全文)$', text):
+                elif last_check > 0 and (page.height * 0.85 - each_line['top']) > 0 and not re.search(check_re,
+                                                                                                      text):
                     text = text + each_line['text']
                 else:
                     text = text + '\n' + each_line['text']
@@ -35,8 +41,10 @@ def check_lines(page, top, buttom):
         last_check = each_line['x1'] - page.width * 0.85
 
     return text
+
 def change_pdf_to_txt(name):
     pdf = pdfplumber.open(name)
+    last_num = 0
 
     all_text = {}
     allrow = 0
@@ -51,13 +59,12 @@ def change_pdf_to_txt(name):
                     pass
                 else:
                     count = count - 1
-
                     top = table.bbox[1]
                     text = check_lines(page, top, buttom)
                     text_list = text.split('\n')
                     for _t in range(len(text_list)):
                         all_text[allrow] = {}
-                        all_text[allrow]['page'] = page
+                        all_text[allrow]['page'] = page.page_number
                         all_text[allrow]['allrow'] = allrow
                         all_text[allrow]['type'] = 'text'
                         all_text[allrow]['inside'] = text_list[_t]
@@ -72,6 +79,7 @@ def change_pdf_to_txt(name):
                         if row[0] == None:
                             r_count = r_count + 1
                             for c in range(len(row)):
+
                                 if row[c] != None and row[c] != '' and row[c] != ' ':
                                     if new_table[r - r_count][c] == None:
                                         new_table[r - r_count][c] = row[c]
@@ -92,49 +100,59 @@ def change_pdf_to_txt(name):
                                 cell_list.append(cell)
                             end_table.append(cell_list)
                     for row in end_table:
-                        all_text[allrow] = {}
-                        all_text[allrow]['page'] = page
-                        all_text[allrow]['allrow'] = allrow
-                        all_text[allrow]['type'] = 'excel'
-                        all_text[allrow]['inside'] = str(row)
+                        all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'excel',
+                                            'inside': str(row)}
+                        # all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'excel',
+                        #                     'inside': ' '.join()}
+
                         allrow = allrow + 1
 
                     if count == 0:
                         text = check_lines(page, '', buttom)
                         text_list = text.split('\n')
                         for _t in range(len(text_list)):
-                            all_text[allrow] = {}
-                            all_text[allrow]['page'] = page
-                            all_text[allrow]['allrow'] = allrow
-                            all_text[allrow]['type'] = 'text'
-                            all_text[allrow]['inside'] = text_list[_t]
+                            all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'text',
+                                                'inside': text_list[_t]}
                             allrow = allrow + 1
 
         else:
             text = check_lines(page, '', '')
             text_list = text.split('\n')
             for _t in range(len(text_list)):
-                all_text[allrow] = {}
-                all_text[allrow]['page'] = page
-                all_text[allrow]['allrow'] = allrow
-                all_text[allrow]['type'] = 'text'
-                all_text[allrow]['inside'] = text_list[_t]
+                all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'text',
+                                         'inside': text_list[_t]}
                 allrow = allrow + 1
-    save_path_1 = 'test_txt\\'+name.split('\\')[-1].replace('.pdf', '.txt')
-    save_path_2 = 'test_txt\\' + name.split('\\')[-1].replace('.pdf', '_txt.txt')
+        first_re = '[^计](?:报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'
+        end_re = '^(?:\d|\\|\/|第|共|页|-|_| ){1,}'
+        if last_num==0:
+            first_text = str(all_text[1]['inside'])
+            end_text = str(all_text[len(all_text) - 1]['inside'])
+            if re.search(first_re, first_text) and not re.search('\[', first_text):
+                all_text[1]['type'] = '页眉'
+                if re.search(end_re, end_text) and not re.search('\[', end_text):
+                    all_text[len(all_text) - 1]['type'] = '页脚'
+        else:
+            first_text = str(all_text[last_num + 2]['inside'])
+
+            end_text = str(all_text[len(all_text) - 1]['inside'])
+
+            if re.search(first_re, first_text) and not re.search('\[', first_text):
+                all_text[last_num+2]['type'] = '页眉'
+            if re.search(end_re, end_text) and not re.search('\[', end_text) :
+                all_text[len(all_text) - 1]['type'] = '页脚'
+
+        last_num = len(all_text)-1
+
+    save_path_1 = 'D:\\test_txt2\\'+name.split('\\')[-1].replace('.pdf', '.txt')
     for key in all_text.keys():
         with open(save_path_1, 'a+', encoding='utf-8') as file:
+            # file.write(str(all_text[key]['inside']) + '\n')
             file.write(str(all_text[key]) + '\n')
-        with open(save_path_2, 'a+', encoding='utf-8') as file:
-            file.write(str(all_text[key]['inside']) + '\n')
 
 
-# 文件夹路径
-folder_path = 'test_data'
-# 获取文件夹内所有文件名称
+folder_path = 'D:\\test_data2'
 file_names = glob.glob(folder_path + '/*')
 file_names = sorted(file_names, reverse=True)
-# 打印文件名称
 name_list = []
 for file_name in file_names:
     name_list.append(file_name)
