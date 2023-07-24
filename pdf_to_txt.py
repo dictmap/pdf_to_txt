@@ -42,6 +42,16 @@ def check_lines(page, top, buttom):
 
     return text
 
+
+def drop_empty_cols(data):
+    # 转置数据，使得每个子列表代表一列而不是一行
+    transposed_data = list(map(list, zip(*data)))
+    # 过滤掉全部为空的列
+    filtered_data = [col for col in transposed_data if not all(cell is '' for cell in col)]
+    # 再次转置数据，使得每个子列表代表一行
+    result = list(map(list, zip(*filtered_data)))
+    return result
+
 def change_pdf_to_txt(name):
     pdf = pdfplumber.open(name)
     last_num = 0
@@ -97,6 +107,9 @@ def change_pdf_to_txt(name):
                                     cell = ''
                                 cell_list.append(cell)
                             end_table.append(cell_list)
+                    end_table = drop_empty_cols(end_table)
+
+
                     for row in end_table:
                         all_text[allrow] = {'page': page.page_number, 'allrow': allrow, 'type': 'excel',
                                             'inside': str(row)}
@@ -140,7 +153,7 @@ def change_pdf_to_txt(name):
 
         last_num = len(all_text)-1
 
-    save_path_1 = 'D:\\test_txt2\\'+name.split('\\')[-1].replace('.pdf', '.txt')
+    save_path_1 = 'D:\\test_txt2\\'+name.split('\\')[-1].replace('.pdf', '_1.txt')
     for key in all_text.keys():
         with open(save_path_1, 'a+', encoding='utf-8') as file:
             # file.write(str(all_text[key]['inside']) + '\n')

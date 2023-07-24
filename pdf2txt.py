@@ -56,6 +56,14 @@ class PDFProcessor:
 
         return text
 
+    def drop_empty_cols(self, data):
+        # 转置数据，使得每个子列表代表一列而不是一行
+        transposed_data = list(map(list, zip(*data)))
+        # 过滤掉全部为空的列
+        filtered_data = [col for col in transposed_data if not all(cell is '' for cell in col)]
+        # 再次转置数据，使得每个子列表代表一行
+        result = list(map(list, zip(*filtered_data)))
+        return result
     def extract_text_and_tables(self, page):
         buttom = 0
         tables = page.find_tables()
@@ -101,6 +109,7 @@ class PDFProcessor:
                                     cell = ''
                                 cell_list.append(cell)
                             end_table.append(cell_list)
+                    end_table = self.drop_empty_cols(end_table)
                     for row in end_table:
                         self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel', 'inside': str(row)}
                         # self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel',
@@ -149,7 +158,7 @@ def process_all_pdfs_in_folder(folder_path):
     for file_path in file_paths:
         processor = PDFProcessor(file_path)
         processor.process_pdf()
-        save_path = 'D:\\test_txt3\\' + file_path.split('\\')[-1].replace('.pdf', '.txt')
+        save_path = 'D:\\test_txt3\\' + file_path.split('\\')[-1].replace('.pdf', '_1.txt')
         processor.save_all_text(save_path)
 
 
