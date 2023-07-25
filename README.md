@@ -12,9 +12,7 @@
 
 另：
 
-提供一些关于pdfplumber中处理表格函数的一些参数说明，仅供参考。
-
-extract_table()、find_tables() 是 pdfplumber 中用于从 PDF 中提取表格数据的函数。该函数可以接受一个可选的参数字典，用于更精细地控制表格数据的提取过程。下面介绍一些常用的参数：
+extract_table()、find_tables() 是 pdfplumber 中用于从 PDF 中提取表格数据的函数。该函数可以接受一个可选的参数字典，用于更精细地控制表格数据的提取过程。下面介绍一些常用的参数，仅供参考：
 
 vertical_strategy：用于指定垂直方向上的表格线提取策略，可以是 “lines”、“text” 或 “mixed” 中的任意一种，默认值为 “lines”。
 
