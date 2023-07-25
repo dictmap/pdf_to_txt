@@ -52,13 +52,12 @@ class PDFProcessor:
         return text
 
     def drop_empty_cols(self, data):
-        # 转置数据，使得每个子列表代表一列而不是一行
+        # 删除所有列为空数据的列
         transposed_data = list(map(list, zip(*data)))
-        # 过滤掉全部为空的列
         filtered_data = [col for col in transposed_data if not all(cell is '' for cell in col)]
-        # 再次转置数据，使得每个子列表代表一行
         result = list(map(list, zip(*filtered_data)))
         return result
+
     def extract_text_and_tables(self, page):
         buttom = 0
         tables = page.find_tables()
@@ -140,12 +139,15 @@ class PDFProcessor:
                 if re.search(end_re, end_text) and not '[' in end_text:
                     self.all_text[len(self.all_text) - 1]['type'] = '页脚'
         else:
-            first_text = str(self.all_text[self.last_num + 2]['inside'])
-            end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
-            if re.search(first_re, first_text) and not '[' in end_text:
-                self.all_text[self.last_num + 2]['type'] = '页眉'
-            if re.search(end_re, end_text) and not '[' in end_text:
-                self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+            try:
+                first_text = str(self.all_text[self.last_num + 2]['inside'])
+                end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
+                if re.search(first_re, first_text) and not '[' in end_text:
+                    self.all_text[self.last_num + 2]['type'] = '页眉'
+                if re.search(end_re, end_text) and not '[' in end_text:
+                    self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+            except:
+                print(page.page_number)
 
         self.last_num = len(self.all_text) - 1
 
