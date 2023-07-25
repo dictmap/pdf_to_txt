@@ -10,11 +10,6 @@ class PDFProcessor:
         self.pdf = pdfplumber.open(filepath)
         self.all_text = defaultdict(dict)
         self.allrow = 0
-        self.compiled_regex = {
-            "check_re": re.compile(r'(?:。|；|单位：元|单位：万元|币种：人民币|\d|报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'),
-            "first_re": re.compile(r'[^计](?:报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'),
-            "end_re": re.compile(r'^(?:\d|\\|\/|第|共|页|-|_| ){1,}')
-        }
         self.last_num = 0
 
     def check_lines(self, page, top, buttom):
@@ -78,7 +73,8 @@ class PDFProcessor:
                     text = self.check_lines(page, top, buttom)
                     text_list = text.split('\n')
                     for _t in range(len(text_list)):
-                        self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'text', 'inside': text_list[_t]}
+                        self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow,
+                                                      'type': 'text', 'inside': text_list[_t]}
                         self.allrow += 1
 
                     buttom = table.bbox[3]
@@ -110,8 +106,10 @@ class PDFProcessor:
                                 cell_list.append(cell)
                             end_table.append(cell_list)
                     end_table = self.drop_empty_cols(end_table)
+
                     for row in end_table:
-                        self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel', 'inside': str(row)}
+                        self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow,
+                                                      'type': 'excel', 'inside': str(row)}
                         # self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'excel',
                         #                               'inside': ' '.join(row)}
                         self.allrow += 1
@@ -120,24 +118,34 @@ class PDFProcessor:
                         text = self.check_lines(page, '', buttom)
                         text_list = text.split('\n')
                         for _t in range(len(text_list)):
-                            self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'text', 'inside': text_list[_t]}
+                            self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow,
+                                                          'type': 'text', 'inside': text_list[_t]}
                             self.allrow += 1
 
         else:
             text = self.check_lines(page, '', '')
             text_list = text.split('\n')
             for _t in range(len(text_list)):
-                self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow, 'type': 'text', 'inside': text_list[_t]}
+                self.all_text[self.allrow] = {'page': page.page_number, 'allrow': self.allrow,
+                                              'type': 'text', 'inside': text_list[_t]}
                 self.allrow += 1
 
-        first_text = str(
-            self.all_text[1]['inside'] if self.last_num == 0 else self.all_text[self.last_num + 2]['inside'])
-        end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
-
-        if self.compiled_regex['first_re'].search(first_text) and not '[' in first_text:
-            self.all_text[1 if self.last_num == 0 else self.last_num + 2]['type'] = '页眉'
-        if self.compiled_regex['end_re'].search(end_text) and not '[' in end_text:
-            self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+        first_re = '[^计](?:报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'
+        end_re = '^(?:\d|\\|\/|第|共|页|-|_| ){1,}'
+        if self.last_num == 0:
+            first_text = str(self.all_text[1]['inside'])
+            end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
+            if re.search(first_re, first_text) and not '[' in end_text:
+                self.all_text[1]['type'] = '页眉'
+                if re.search(end_re, end_text) and not '[' in end_text:
+                    self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+        else:
+            first_text = str(self.all_text[self.last_num + 2]['inside'])
+            end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
+            if re.search(first_re, first_text) and not '[' in end_text:
+                self.all_text[self.last_num + 2]['type'] = '页眉'
+            if re.search(end_re, end_text) and not '[' in end_text:
+                self.all_text[len(self.all_text) - 1]['type'] = '页脚'
 
         self.last_num = len(self.all_text) - 1
 
@@ -156,12 +164,13 @@ def process_all_pdfs_in_folder(folder_path):
     file_paths = sorted(file_paths, reverse=True)
 
     for file_path in file_paths:
+        print(file_path)
         processor = PDFProcessor(file_path)
         processor.process_pdf()
-        save_path = 'D:\\test_txt3\\' + file_path.split('\\')[-1].replace('.pdf', '_1.txt')
+        save_path = 'D:\\test_txt\\' + file_path.split('\\')[-1].replace('.pdf', '.txt')
         processor.save_all_text(save_path)
 
 
-folder_path = 'D:\\test_data3'
+folder_path = 'D:\\test_data'
 process_all_pdfs_in_folder(folder_path)
 

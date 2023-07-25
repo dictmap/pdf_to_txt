@@ -153,7 +153,7 @@ def change_pdf_to_txt(name):
 
         last_num = len(all_text)-1
 
-    save_path_1 = 'D:\\test_txt2\\'+name.split('\\')[-1].replace('.pdf', '_1.txt')
+    save_path_1 = 'D:\\test_txt2\\'+name.split('\\')[-1].replace('.pdf', '.txt')
     for key in all_text.keys():
         with open(save_path_1, 'a+', encoding='utf-8') as file:
             # file.write(str(all_text[key]['inside']) + '\n')
