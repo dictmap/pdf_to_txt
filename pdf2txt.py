@@ -2,7 +2,7 @@ import glob
 import pdfplumber
 import re
 from collections import defaultdict
-
+import json
 
 class PDFProcessor:
     def __init__(self, filepath):
@@ -60,7 +60,7 @@ class PDFProcessor:
 
     def extract_text_and_tables(self, page):
         buttom = 0
-        tables = page.find_tables()
+        tables = page.find_tables(table_settings={'intersection_x_tolerance': 1})
         if len(tables) >= 1:
             count = len(tables)
             for table in tables:
@@ -162,7 +162,7 @@ class PDFProcessor:
     def save_all_text(self, path):
         for key in self.all_text.keys():
             with open(path, 'a+', encoding='utf-8') as file:
-                file.write(str(self.all_text[key]) + '\n')
+                file.write(json.dumps(self.all_text[key]) + '\n')
 
 def process_all_pdfs_in_folder(folder_path):
     file_paths = glob.glob(f'{folder_path}/*')
