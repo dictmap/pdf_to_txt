@@ -97,13 +97,17 @@ class PDFProcessor:
                     for row in new_table:
                         if row[0] != None:
                             cell_list = []
+                            cell_check = False
                             for cell in row:
                                 if cell != None:
                                     cell = cell.replace('\n', '')
                                 else:
                                     cell = ''
+                                if cell != '':
+                                    cell_check=True
                                 cell_list.append(cell)
-                            end_table.append(cell_list)
+                            if cell_check:
+                                end_table.append(cell_list)
                     end_table = self.drop_empty_cols(end_table)
 
                     for row in end_table:
