@@ -132,12 +132,15 @@ class PDFProcessor:
         first_re = '[^计](?:报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$'
         end_re = '^(?:\d|\\|\/|第|共|页|-|_| ){1,}'
         if self.last_num == 0:
-            first_text = str(self.all_text[1]['inside'])
-            end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
-            if re.search(first_re, first_text) and not '[' in end_text:
-                self.all_text[1]['type'] = '页眉'
-                if re.search(end_re, end_text) and not '[' in end_text:
-                    self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+            try:
+                first_text = str(self.all_text[1]['inside'])
+                end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
+                if re.search(first_re, first_text) and not '[' in end_text:
+                    self.all_text[1]['type'] = '页眉'
+                    if re.search(end_re, end_text) and not '[' in end_text:
+                        self.all_text[len(self.all_text) - 1]['type'] = '页脚'
+            except:
+                print(page.page_number)
         else:
             try:
                 first_text = str(self.all_text[self.last_num + 2]['inside'])
