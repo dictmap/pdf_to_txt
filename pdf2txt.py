@@ -166,7 +166,7 @@ class PDFProcessor:
     def save_all_text(self, path):
         for key in self.all_text.keys():
             with open(path, 'a+', encoding='utf-8') as file:
-                file.write(json.dumps(self.all_text[key]) + '\n')
+                file.write(json.dumps(self.all_text[key], ensure_ascii=False) + '\n')
 
 def process_all_pdfs_in_folder(folder_path):
     file_paths = glob.glob(f'{folder_path}/*')
