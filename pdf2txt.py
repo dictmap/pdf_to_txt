@@ -104,9 +104,9 @@ class PDFProcessor:
                                 else:
                                     cell = ''
                                 if cell != '':
-                                    cell_check=True
+                                    cell_check = True
                                 cell_list.append(cell)
-                            if cell_check:
+                            if cell_check == True:
                                 end_table.append(cell_list)
                     end_table = self.drop_empty_cols(end_table)
 
@@ -149,9 +149,9 @@ class PDFProcessor:
             try:
                 first_text = str(self.all_text[self.last_num + 2]['inside'])
                 end_text = str(self.all_text[len(self.all_text) - 1]['inside'])
-                if re.search(first_re, first_text) and not '[' in end_text:
+                if re.search(first_re, first_text) and '[' not in end_text:
                     self.all_text[self.last_num + 2]['type'] = '页眉'
-                if re.search(end_re, end_text) and not '[' in end_text:
+                if re.search(end_re, end_text) and '[' not in end_text:
                     self.all_text[len(self.all_text) - 1]['type'] = '页脚'
             except:
                 print(page.page_number)
@@ -174,12 +174,15 @@ def process_all_pdfs_in_folder(folder_path):
 
     for file_path in file_paths:
         print(file_path)
-        processor = PDFProcessor(file_path)
-        processor.process_pdf()
-        save_path = 'D:\\test_txt\\' + file_path.split('\\')[-1].replace('.pdf', '.txt')
-        processor.save_all_text(save_path)
+        try:
+            processor = PDFProcessor(file_path)
+            processor.process_pdf()
+            save_path = 'alltxt/' + file_path.split('/')[-1].replace('.pdf', '.txt')
+            processor.save_all_text(save_path)
+        except:
+            print('check')
 
 
-folder_path = 'D:\\test_data'
+folder_path = 'allpdf'
 process_all_pdfs_in_folder(folder_path)
 
