@@ -3,7 +3,7 @@ import pdfplumber
 import re
 from collections import defaultdict
 import json
-
+import os
 class PDFProcessor:
     def __init__(self, filepath):
         self.filepath = filepath
@@ -54,7 +54,7 @@ class PDFProcessor:
     def drop_empty_cols(self, data):
         # 删除所有列为空数据的列
         transposed_data = list(map(list, zip(*data)))
-        filtered_data = [col for col in transposed_data if not all(cell is '' for cell in col)]
+        filtered_data = [col for col in transposed_data if not all(cell == '' for cell in col)]
         result = list(map(list, zip(*filtered_data)))
         return result
 
@@ -177,6 +177,8 @@ def process_all_pdfs_in_folder(folder_path):
         try:
             processor = PDFProcessor(file_path)
             processor.process_pdf()
+            if not os.path.exists(file_path):
+                os.makedirs('alltxt')
             save_path = 'alltxt/' + file_path.split('/')[-1].replace('.pdf', '.txt')
             processor.save_all_text(save_path)
         except:
