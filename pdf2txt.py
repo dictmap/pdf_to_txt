@@ -3,6 +3,7 @@ import pdfplumber
 import re
 from collections import defaultdict
 import json
+from multiprocessing import Pool
 
 class PDFProcessor:
     def __init__(self, filepath):
@@ -60,7 +61,7 @@ class PDFProcessor:
 
     def extract_text_and_tables(self, page):
         buttom = 0
-        tables = page.find_tables(table_settings={'intersection_x_tolerance': 1})
+        tables = page.find_tables()
         if len(tables) >= 1:
             count = len(tables)
             for table in tables:
@@ -168,21 +169,21 @@ class PDFProcessor:
             with open(path, 'a+', encoding='utf-8') as file:
                 file.write(json.dumps(self.all_text[key], ensure_ascii=False) + '\n')
 
-def process_all_pdfs_in_folder(folder_path):
-    file_paths = glob.glob(f'{folder_path}/*')
-    file_paths = sorted(file_paths, reverse=True)
-
-    for file_path in file_paths:
-        print(file_path)
-        try:
-            processor = PDFProcessor(file_path)
-            processor.process_pdf()
-            save_path = 'alltxt/' + file_path.split('/')[-1].replace('.pdf', '.txt')
-            processor.save_all_text(save_path)
-        except:
-            print('check')
+def process_file(file_path):
+    try:
+        print('start ', file_path)
+        processor = PDFProcessor(file_path)
+        processor.process_pdf()
+        save_path = 'alltxt2/' + file_path.split('/')[-1].replace('.pdf', '.txt')
+        processor.save_all_text(save_path)
+        print('finish ', save_path)
+    except:
+        print('check')
 
 
 folder_path = 'allpdf'
-process_all_pdfs_in_folder(folder_path)
+file_paths = glob.glob(f'{folder_path}/*')
+file_paths = sorted(file_paths, reverse=True)
+with Pool(processes=15) as pool:
+    results = pool.map(process_file, file_paths)
 
